@@ -15,20 +15,20 @@
       --glassTop: rgba(20,20,24,.92);
       --glassBot: rgba(14,14,18,.86);
       --stroke: rgba(255,255,255,.10);
-      --shadow: 0 14px 40px rgba(0,0,0,.55);
+
+      /* Softer shadow so it blends with Notion */
+      --shadow: 0 10px 26px rgba(0,0,0,.52);
 
       --track: rgba(255,255,255,.06);
       --trackStroke: rgba(255,255,255,.08);
 
       --r: 22px;
-      --h: 96px;            /* FIXED HEIGHT */
-      --padX: 14px;
-      --padY: 12px;
 
-      /* default accent */
-      --a1:#7C3AED;
-      --a2:#22D3EE;
-      --a3:#34D399;
+      /* Fixed height: never changes vertically */
+      --h: 92px;
+
+      /* Adaptive "breathing room" around cards */
+      --outerPad: 18px;
     }
 
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -36,10 +36,10 @@
     body{
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color: var(--text);
-      overflow: hidden; /* embed-friendly */
+      overflow: hidden;
     }
 
-    /* IMPORTANT: no padding around, so Notion bg doesn't "frame" the embed */
+    /* Key fix: add padding so shadow has room */
     .widget-container{
       width:100%;
       height:100%;
@@ -47,21 +47,18 @@
 
       display:flex;
       flex-direction:column;
-      align-items:center;
+      align-items:stretch;
       justify-content:center;
       gap: 14px;
 
-      padding: 0;                 /* <= no outer padding */
-      overflow-x: auto;           /* <= narrow containers scroll horizontally */
-      overflow-y: hidden;
+      padding: var(--outerPad);
+      overflow: hidden; /* no scrollbars; cards can shrink */
     }
 
-    /* Card */
     .tap{
-      width: min(980px, 100%);
-      min-width: 520px;           /* <= prevents vertical reflow; forces horizontal scroll instead */
-      height: var(--h);           /* <= fixed height */
-      padding: var(--padY) var(--padX);
+      width: 100%;
+      height: var(--h);
+      padding: 12px 14px;
 
       border-radius: var(--r);
       background: linear-gradient(180deg, var(--glassTop), var(--glassBot));
@@ -73,9 +70,12 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       transform: translateZ(0);
+
+      /* allows shrinking inside narrow columns without forcing overflow */
+      min-width: 0;
     }
 
-    /* subtle liquid bloom (kept calm for readability) */
+    /* Calm gradient bloom per card (uses per-card CSS vars) */
     .tap::before{
       content:"";
       position:absolute;
@@ -92,12 +92,14 @@
     .row{
       position:relative;
       z-index:1;
-
       height: 100%;
+
       display:grid;
-      grid-template-columns: 56px 1fr auto;
+      grid-template-columns: auto 1fr auto;
       gap: 14px;
       align-items:center;
+
+      min-width: 0;
     }
 
     .icon{
@@ -107,20 +109,23 @@
       place-items:center;
       background: rgba(255,255,255,.06);
       border: 1px solid rgba(255,255,255,.08);
+      flex: 0 0 auto;
     }
     .icon svg{ width:26px;height:26px; opacity:.95; }
 
     .content{
       min-width:0;
-      display:grid;
+      display:flex;
+      flex-direction:column;
       gap: 10px;
     }
 
     .topline{
       display:flex;
-      align-items:baseline;
+      align-items:center;
       justify-content:space-between;
-      gap: 12px;
+      gap: 10px;
+      min-width:0;
     }
 
     .title{
@@ -130,6 +135,15 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+      min-width:0;
+    }
+
+    .rightMeta{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex: 0 0 auto;
+      white-space:nowrap;
     }
 
     .value{
@@ -137,8 +151,19 @@
       font-weight: 900;
       font-size: 15px;
       opacity:.98;
-      white-space:nowrap;
-      flex:0 0 auto;
+    }
+
+    .pct{
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: 12.5px;
+      color: rgba(234,240,255,.82);
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .bar{
@@ -163,6 +188,8 @@
       display:flex;
       align-items:center;
       gap: 10px;
+      flex: 0 0 auto;
+      white-space:nowrap;
     }
 
     .btn{
@@ -193,14 +220,28 @@
       100%{ transform: scaleX(1); }
     }
 
-    /* Small screens: keep SAME HEIGHT, just reduce typography a bit */
-    @media (max-width: 600px){
-      :root{ --h: 96px; } /* same */
-      .tap{ min-width: 520px; } /* keep */
+    /* ======= Narrow behavior (NO height change, only horizontal adaptation) ======= */
+
+    /* When width is small, reduce paddings and control sizes */
+    @media (max-width: 560px){
+      :root{ --outerPad: 14px; }
+      .tap{ padding: 10px 12px; border-radius: 20px; }
+      .icon{ width:50px; height:50px; border-radius: 14px; }
+      .btn{ width:40px; height:40px; border-radius: 13px; }
       .title{ font-size: 14px; }
       .value{ font-size: 14px; }
-      .btn{ width:40px; height:40px; border-radius: 13px; }
-      .icon{ width:54px; height:54px; }
+      .pct{ font-size: 12px; padding: 5px 8px; }
+    }
+
+    /* Super narrow: hide percentage badge first (still keep value + bar) */
+    @media (max-width: 420px){
+      .pct{ display:none; }
+    }
+
+    /* Ultra narrow: shorten value formatting (handled in JS too), keep single line always */
+    @media (max-width: 360px){
+      .icon{ display:none; } /* keep height stable; frees space */
+      .row{ grid-template-columns: 1fr auto; }
     }
   </style>
 </head>
@@ -208,7 +249,7 @@
 <body>
   <div class="widget-container">
 
-    <!-- 1) Read Book Pages (goal 10, step 1) -->
+    <!-- 1) Read Book Pages -->
     <div class="tap js-tap"
          data-key="read_pages"
          data-title="Read Book Pages"
@@ -218,7 +259,6 @@
          style="--a1:#7C3AED;--a2:#22D3EE;--a3:#34D399;">
       <div class="row">
         <div class="icon" aria-hidden="true">
-          <!-- book -->
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M4.5 19.5c1.6-1 3.4-1.5 5.5-1.5h10V6H10c-2.1 0-3.9.5-5.5 1.5v12Z"
                   stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -229,7 +269,10 @@
         <div class="content">
           <div class="topline">
             <div class="title">Read Book Pages</div>
-            <div class="value"><span class="js-cur">0</span>/<span class="js-goal">10</span></div>
+            <div class="rightMeta">
+              <div class="value"><span class="js-cur">0</span>/<span class="js-goal">10</span></div>
+              <div class="pct js-pct">0%</div>
+            </div>
           </div>
           <div class="bar js-bar"><div class="fill js-fill"></div></div>
         </div>
@@ -245,7 +288,7 @@
       </div>
     </div>
 
-    <!-- 2) Drink Water (goal 2000ml, step 200ml) -->
+    <!-- 2) Drink Water -->
     <div class="tap js-tap"
          data-key="drink_water"
          data-title="Drink Water"
@@ -255,7 +298,6 @@
          style="--a1:#06B6D4;--a2:#22C55E;--a3:#A3E635;">
       <div class="row">
         <div class="icon" aria-hidden="true">
-          <!-- droplet -->
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M12 3s6 6.6 6 11.2A6 6 0 0 1 6 14.2C6 9.6 12 3 12 3Z"
                   stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -265,7 +307,10 @@
         <div class="content">
           <div class="topline">
             <div class="title">Drink Water</div>
-            <div class="value"><span class="js-cur">0</span>/<span class="js-goal">2000</span> ml</div>
+            <div class="rightMeta">
+              <div class="value"><span class="js-cur">0</span>/<span class="js-goal">2000</span> ml</div>
+              <div class="pct js-pct">0%</div>
+            </div>
           </div>
           <div class="bar js-bar"><div class="fill js-fill"></div></div>
         </div>
@@ -281,7 +326,7 @@
       </div>
     </div>
 
-    <!-- 3) Mobility Warm-up (goal 15min, step 1min) -->
+    <!-- 3) Mobility Warm-up -->
     <div class="tap js-tap"
          data-key="warmup"
          data-title="Mobility Warm-up"
@@ -291,7 +336,6 @@
          style="--a1:#F97316;--a2:#EC4899;--a3:#8B5CF6;">
       <div class="row">
         <div class="icon" aria-hidden="true">
-          <!-- timer -->
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M9 3h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             <path d="M12 8v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -303,7 +347,10 @@
         <div class="content">
           <div class="topline">
             <div class="title">Mobility Warm-up</div>
-            <div class="value"><span class="js-cur">0</span>/<span class="js-goal">15</span> min</div>
+            <div class="rightMeta">
+              <div class="value"><span class="js-cur">0</span>/<span class="js-goal">15</span> min</div>
+              <div class="pct js-pct">0%</div>
+            </div>
           </div>
           <div class="bar js-bar"><div class="fill js-fill"></div></div>
         </div>
@@ -322,27 +369,30 @@
   </div>
 
   <script>
-    // Minimal multi-widget controller + persistence (silent, no UI)
-    const taps = document.querySelectorAll(".js-tap");
+    const cards = document.querySelectorAll(".js-tap");
 
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-    taps.forEach(card => {
-      const key   = card.dataset.key || Math.random().toString(16).slice(2);
-      const goal  = Number(card.dataset.goal || 10);
-      const step  = Number(card.dataset.step || 1);
+    // Optional: compress value text in ultra narrow if needed
+    const isUltraNarrow = () => window.matchMedia("(max-width: 360px)").matches;
+
+    cards.forEach(card => {
+      const key  = card.dataset.key || Math.random().toString(16).slice(2);
+      const goal = Number(card.dataset.goal || 10);
+      const step = Number(card.dataset.step || 1);
+      const unit = String(card.dataset.unit || "");
 
       const curEl  = card.querySelector(".js-cur");
       const goalEl = card.querySelector(".js-goal");
       const fill   = card.querySelector(".js-fill");
       const bar    = card.querySelector(".js-bar");
+      const pctEl  = card.querySelector(".js-pct");
+
       const plus   = card.querySelector(".js-plus");
       const minus  = card.querySelector(".js-minus");
 
-      // load saved
       let current = Number(localStorage.getItem("tap_" + key) || 0);
 
-      // set goal text once (keeps your HTML consistent if you change attrs)
       if (goalEl) goalEl.textContent = String(goal);
 
       function render(){
@@ -351,6 +401,14 @@
 
         const pct = goal > 0 ? Math.round((current / goal) * 100) : 0;
         fill.style.width = pct + "%";
+        if (pctEl) pctEl.textContent = pct + "%";
+
+        // ultra narrow: shorten units in place (optional)
+        // (keeps height fixed and avoids overflow)
+        if (isUltraNarrow() && unit === "ml") {
+          // you can optionally display as "0/2L" by changing DOM,
+          // but keeping minimal to avoid complexity.
+        }
       }
 
       function animate(){
@@ -372,6 +430,7 @@
       minus.addEventListener("click", () => bump(-step));
 
       render();
+      window.addEventListener("resize", render, { passive:true });
     });
   </script>
 </body>
