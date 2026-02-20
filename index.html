@@ -1,87 +1,100 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tap Widget — Liquid Glass</title>
+  <title>Notion Tap Widget</title>
+
   <style>
     :root{
-      --bg1:#070A12;
-      --bg2:#0B1220;
+      /* Notion-friendly (transparent by default) */
+      --page-bg: transparent;
 
-      --glass: rgba(255,255,255,.08);
-      --glass2: rgba(255,255,255,.05);
-      --stroke: rgba(255,255,255,.14);
-      --stroke2: rgba(255,255,255,.08);
-      --text:#EAF0FF;
+      /* Core */
+      --text: #EAF0FF;
       --muted: rgba(234,240,255,.65);
 
+      /* Liquid glass */
+      --glassTop: rgba(255,255,255,.10);
+      --glassBot: rgba(255,255,255,.04);
+      --stroke: rgba(255,255,255,.14);
+      --stroke2: rgba(255,255,255,.08);
       --shadow: 0 18px 55px rgba(0,0,0,.55);
       --shadow2: 0 10px 30px rgba(0,0,0,.35);
 
+      /* Radius / spacing */
       --r: 22px;
+      --pad: 14px;
 
       /* Accent gradient (Revolut-ish) */
       --g1: #7C3AED; /* violet */
       --g2: #22D3EE; /* cyan */
       --g3: #34D399; /* green */
-
-      --danger:#ff5b6a;
     }
 
-    *{box-sizing:border-box}
+    /* Optional: light theme if you ever want it */
+    [data-theme="light"]{
+      --page-bg: transparent;
+      --text: #0B1220;
+      --muted: rgba(11,18,32,.62);
+
+      --glassTop: rgba(255,255,255,.75);
+      --glassBot: rgba(255,255,255,.55);
+      --stroke: rgba(11,18,32,.10);
+      --stroke2: rgba(11,18,32,.08);
+
+      --shadow: 0 16px 45px rgba(0,0,0,.15);
+      --shadow2: 0 10px 28px rgba(0,0,0,.10);
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    html, body{ width:100%; height:100%; }
     body{
-      margin:0;
-      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: var(--page-bg);
+      color: var(--text);
+      overflow: hidden; /* embed-friendly */
+    }
+
+    /* Embed-friendly container: fills iframe */
+    .widget-container{
+      width:100%;
+      height:100%;
       display:grid;
       place-items:center;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background:
-        radial-gradient(1200px 800px at 20% 10%, rgba(124,58,237,.22), transparent 55%),
-        radial-gradient(900px 700px at 85% 30%, rgba(34,211,238,.16), transparent 55%),
-        radial-gradient(900px 700px at 50% 110%, rgba(52,211,153,.12), transparent 55%),
-        linear-gradient(180deg, var(--bg1), var(--bg2));
-      color:var(--text);
-      padding: 28px;
+      padding: 18px;
     }
 
-    /* Demo wrapper */
-    .stage{
-      width:min(720px, 100%);
-      display:grid;
-      gap:14px;
-    }
-
-    /* Liquid glass card */
+    /* Tap widget card */
     .tap{
-      position:relative;
+      width: min(980px, 100%);
       border-radius: var(--r);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--glassTop), var(--glassBot));
+      border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
       overflow:hidden;
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
+      position:relative;
+      padding: var(--pad);
       transform: translateZ(0);
-      padding: 14px;
     }
 
-    /* Inner gradient bloom */
+    /* Inner “bloom” gradients (liquid feel) */
     .tap::before{
       content:"";
       position:absolute;
       inset:-80px;
       background:
-        radial-gradient(450px 260px at 20% 40%, rgba(124,58,237,.35), transparent 60%),
-        radial-gradient(480px 260px at 80% 20%, rgba(34,211,238,.28), transparent 58%),
-        radial-gradient(420px 240px at 70% 90%, rgba(52,211,153,.22), transparent 60%);
+        radial-gradient(450px 260px at 20% 40%, rgba(124,58,237,.32), transparent 60%),
+        radial-gradient(480px 260px at 80% 20%, rgba(34,211,238,.24), transparent 58%),
+        radial-gradient(420px 240px at 70% 90%, rgba(52,211,153,.18), transparent 60%);
       filter: blur(18px);
-      opacity:.7;
+      opacity:.85;
       pointer-events:none;
     }
 
-    /* Liquid sheen */
+    /* Subtle sheen */
     .tap::after{
       content:"";
       position:absolute;
@@ -89,46 +102,44 @@
       top:-60%;
       width:70%;
       height:220%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
-      transform: rotate(20deg);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+      transform: rotate(18deg);
       opacity:.35;
       pointer-events:none;
     }
 
-    /* Layout: icon | content | controls */
+    /* Layout */
     .row{
       position:relative;
+      z-index:1;
       display:grid;
-      grid-template-columns: 54px 1fr auto;
+      grid-template-columns: 56px 1fr auto;
       gap: 14px;
       align-items:center;
-      z-index:1;
     }
 
     .icon{
-      width:54px;height:54px;
+      width:56px;height:56px;
+      border-radius: 16px;
       display:grid;
       place-items:center;
-      border-radius: 16px;
       background: rgba(255,255,255,.08);
       border:1px solid var(--stroke2);
       box-shadow: var(--shadow2);
     }
-
-    /* Simple SVG icon style */
     .icon svg{ width:26px;height:26px; opacity:.95; }
 
     .content{
       min-width:0;
       display:grid;
-      gap:6px;
+      gap: 8px;
     }
 
     .topline{
       display:flex;
       align-items:baseline;
       justify-content:space-between;
-      gap:10px;
+      gap: 12px;
     }
 
     .title{
@@ -146,19 +157,7 @@
       letter-spacing:.2px;
       font-size: 16px;
       opacity:.95;
-    }
-
-    .meta{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height:1.2;
-    }
-    .meta .dot{
-      width:4px;height:4px;border-radius:999px;
-      background: rgba(234,240,255,.35);
+      flex: 0 0 auto;
     }
 
     /* Progress bar */
@@ -168,14 +167,15 @@
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.10);
       overflow:hidden;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+      transform: translateZ(0);
     }
     .fill{
       height:100%;
       width:0%;
       border-radius: 999px;
       background: linear-gradient(90deg, var(--g1), var(--g2), var(--g3));
-      filter: saturate(1.15);
+      filter: saturate(1.12);
       transition: width 260ms cubic-bezier(.2,.9,.2,1);
       position:relative;
     }
@@ -183,31 +183,68 @@
       content:"";
       position:absolute;
       inset:-10px -40px;
-      background: radial-gradient(120px 22px at 55% 50%, rgba(255,255,255,.25), transparent 60%);
+      background: radial-gradient(120px 22px at 55% 50%, rgba(255,255,255,.22), transparent 60%);
       opacity:.6;
       pointer-events:none;
       transform: translateX(-25px);
       animation: shimmer 2.8s linear infinite;
     }
     @keyframes shimmer{
-      0%{ transform: translateX(-90px); opacity:.35; }
-      50%{ opacity:.7; }
-      100%{ transform: translateX(220px); opacity:.35; }
+      0%{ transform: translateX(-90px); opacity:.32; }
+      50%{ opacity:.65; }
+      100%{ transform: translateX(220px); opacity:.32; }
+    }
+
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height:1.2;
+    }
+    .dot{
+      width:4px;height:4px;border-radius:999px;
+      background: rgba(234,240,255,.35);
+    }
+
+    .badges{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .badge{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 12.5px;
+      color: rgba(234,240,255,.82);
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+    [data-theme="light"] .badge{
+      background: rgba(255,255,255,.55);
+      color: rgba(11,18,32,.78);
     }
 
     /* Controls */
     .controls{
       display:flex;
       align-items:center;
-      gap:10px;
+      gap: 10px;
     }
 
     .btn{
-      width:40px;height:40px;
+      width:42px;height:42px;
       border-radius: 14px;
       border:1px solid rgba(255,255,255,.14);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
       box-shadow: var(--shadow2);
       display:grid;
       place-items:center;
@@ -219,72 +256,65 @@
     }
     .btn:hover{
       border-color: rgba(255,255,255,.22);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
     }
     .btn:active{ transform: translateY(1px) scale(.98); }
     .btn svg{ width:18px;height:18px; opacity:.95; }
 
-    /* Tap animation: card “breath” + slight squeeze */
-    .tap.pulse{
-      animation: pulseCard 240ms cubic-bezier(.2,.9,.2,1);
-    }
+    /* Click animations */
+    .tap.pulse{ animation: pulseCard 240ms cubic-bezier(.2,.9,.2,1); }
     @keyframes pulseCard{
-      0%   { transform: scale(1); }
-      40%  { transform: scale(.992); }
-      100% { transform: scale(1); }
+      0%{ transform: scale(1); }
+      40%{ transform: scale(.992); }
+      100%{ transform: scale(1); }
     }
-
-    /* micro “squeeze” on the bar wrapper */
-    .bar.squish{
-      animation: squish 240ms cubic-bezier(.2,.9,.2,1);
-    }
+    .bar.squish{ animation: squish 240ms cubic-bezier(.2,.9,.2,1); }
     @keyframes squish{
       0%{ transform: scaleX(1); }
       45%{ transform: scaleX(.985); }
       100%{ transform: scaleX(1); }
     }
 
-    /* Small toast */
-    .toast{
-      margin-top: 8px;
-      color: rgba(234,240,255,.72);
-      font-size: 12.5px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      opacity:.95;
-    }
-    .badge{
-      padding: 6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      font-variant-numeric: tabular-nums;
+    /* Responsive: make it “pleasant” on narrow embeds */
+    @media (max-width: 720px){
+      body{ overflow-y:auto; } /* if the embed gets short */
+      .widget-container{ padding: 14px; }
+
+      .row{
+        grid-template-columns: 54px 1fr;
+        grid-template-rows: auto auto;
+        gap: 12px;
+        align-items:start;
+      }
+
+      .controls{
+        grid-column: 1 / -1;
+        justify-content:flex-end;
+        margin-top: 6px;
+      }
+
+      .btn{ width:44px; height:44px; }
+      .title{ font-size: 14px; }
+      .count{ font-size: 15px; }
     }
 
-    /* Variant helpers (optional) */
-    .tap[data-theme="mint"]{
-      --g1:#22c55e; --g2:#06b6d4; --g3:#a3e635;
-    }
-    .tap[data-theme="violet"]{
-      --g1:#7c3aed; --g2:#06b6d4; --g3:#60a5fa;
-    }
-    .tap[data-theme="sunset"]{
-      --g1:#f97316; --g2:#ec4899; --g3:#8b5cf6;
+    @media (max-width: 420px){
+      .tap{ padding: 12px; border-radius: 18px; }
+      .icon{ width:50px; height:50px; border-radius: 14px; }
+      .btn{ width:42px; height:42px; border-radius: 13px; }
+      .badge{ padding: 6px 9px; font-size: 12px; }
+      .meta{ font-size: 12px; }
     }
   </style>
 </head>
-<body>
 
-  <div class="stage">
-    <!-- ONE WIDGET (copy/paste this block for multiple) -->
-    <div class="tap" id="tapWidget" data-theme="violet" data-current="3" data-goal="8">
+<body>
+  <div class="widget-container">
+    <!-- Copy/paste this card to create multiple widgets -->
+    <div class="tap" id="tapWidget" data-current="0" data-goal="8">
       <div class="row">
         <div class="icon" aria-hidden="true">
-          <!-- minimalist icon -->
+          <!-- Minimal icon -->
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M7 18.5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             <path d="M8.5 18.5l-1.2-8.2A3 3 0 0 1 10.27 7h3.46a3 3 0 0 1 2.97 3.3l-1.2 8.2"
@@ -297,7 +327,7 @@
         <div class="content">
           <div class="topline">
             <div class="title" id="wTitle">No-Spend: Coffee</div>
-            <div class="count"><span id="wCurrent">3</span>/<span id="wGoal">8</span></div>
+            <div class="count"><span id="wCurrent">0</span>/<span id="wGoal">8</span></div>
           </div>
 
           <div class="bar" id="wBar" aria-label="progress">
@@ -305,25 +335,25 @@
           </div>
 
           <div class="meta">
-            <span id="wStatus">3 клика до цели</span>
+            <span id="wStatus">8 taps to goal</span>
             <span class="dot"></span>
-            <span id="wUpdated">обновлено только что</span>
+            <span id="wUpdated">updated 15:03</span>
           </div>
 
-          <div class="toast">
-            <span class="badge">+1 = событие</span>
+          <div class="badges">
+            <span class="badge">+1 = one event</span>
             <span class="badge" id="wPct">0%</span>
           </div>
         </div>
 
         <div class="controls">
-          <div class="btn" id="minusBtn" title="Минус">
+          <div class="btn" id="minusBtn" title="Decrease">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M6 12h12" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
             </svg>
           </div>
 
-          <div class="btn" id="plusBtn" title="Плюс">
+          <div class="btn" id="plusBtn" title="Increase">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
             </svg>
@@ -331,16 +361,10 @@
         </div>
       </div>
     </div>
-
-    <!-- quick note (optional, delete) -->
-    <div style="color:rgba(234,240,255,.55);font-size:12.5px;max-width:720px;line-height:1.4">
-      Совет: меняй <b>data-current</b> и <b>data-goal</b> на блоке, или подключи сохранение в localStorage.
-      Этот компонент уже сам считает прогресс и делает анимацию при клике.
-    </div>
   </div>
 
   <script>
-    // Minimal, clean logic (no deps)
+    // Minimal logic (no deps)
     const el = document.getElementById("tapWidget");
 
     const currentEl = document.getElementById("wCurrent");
@@ -354,7 +378,6 @@
     const plusBtn   = document.getElementById("plusBtn");
     const minusBtn  = document.getElementById("minusBtn");
 
-    // init
     let current = clampInt(parseInt(el.dataset.current ?? "0", 10), 0, 9999);
     let goal    = clampInt(parseInt(el.dataset.goal ?? "8", 10), 1, 9999);
 
@@ -363,13 +386,12 @@
       return Math.max(a, Math.min(b, n));
     }
 
-    function formatUpdated(){
+    function formatTime(){
       const d = new Date();
-      return d.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+      return d.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" });
     }
 
     function render(){
-      // keep invariant: 0 <= current <= goal
       current = clampInt(current, 0, goal);
 
       currentEl.textContent = String(current);
@@ -380,17 +402,14 @@
       pctEl.textContent = pct + "%";
 
       const left = Math.max(0, goal - current);
-      statusEl.textContent = left === 0 ? "цель выполнена" : `${left} клика до цели`;
-
-      updatedEl.textContent = "обновлено " + formatUpdated();
+      statusEl.textContent = left === 0 ? "goal completed" : `${left} taps to goal`;
+      updatedEl.textContent = "updated " + formatTime();
     }
 
     function animateTap(){
-      // Card pulse + bar squish (no heavy animations)
       el.classList.remove("pulse");
       barEl.classList.remove("squish");
-      // force reflow to restart animation
-      void el.offsetWidth;
+      void el.offsetWidth; // restart animation
       el.classList.add("pulse");
       barEl.classList.add("squish");
     }
@@ -404,14 +423,12 @@
     plusBtn.addEventListener("click", () => bump(+1));
     minusBtn.addEventListener("click", () => bump(-1));
 
-    // Optional: click on card center to +1 (fast “тик”)
+    // Double-click anywhere on the card (except buttons) to +1
     el.addEventListener("dblclick", (e) => {
-      // ignore if clicking buttons
       if (e.target.closest(".btn")) return;
       bump(+1);
     });
 
-    // First paint
     render();
   </script>
 </body>
