@@ -1,1 +1,714 @@
-testing test
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finance Widget — Quick Add Expense</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#121a27;
+      --muted:#8ea0b8;
+      --text:#e9f0ff;
+      --line:#1f2a3c;
+      --good:#2bd576;
+      --warn:#f7b84b;
+      --bad:#ff5d5d;
+      --accent:#6aa9ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(106,169,255,.14), transparent 55%),
+                  radial-gradient(1200px 800px at 90% 30%, rgba(43,213,118,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      padding:24px;
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:18px;
+    }
+
+    @media (max-width: 920px){
+      .wrap{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)),
+                  var(--card);
+      border: 1px solid rgba(255,255,255,.06);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding:16px;
+    }
+
+    .h{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .h h2{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .pill{
+      font-size:12px;
+      color: var(--muted);
+      border:1px solid rgba(255,255,255,.08);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(0,0,0,.15);
+    }
+
+    .bigbtn{
+      width:100%;
+      border:none;
+      cursor:pointer;
+      padding:14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(106,169,255,.9), rgba(106,169,255,.55));
+      color:#04111f;
+      font-weight:700;
+      font-size:14px;
+      box-shadow: 0 12px 25px rgba(106,169,255,.22);
+      transition: transform .08s ease;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+    }
+    .bigbtn:active{ transform: translateY(1px); }
+    .bigbtn svg{ width:18px; height:18px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    .kpi{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding:12px;
+      background: rgba(0,0,0,.12);
+    }
+    .kpi .label{ color:var(--muted); font-size:12px; }
+    .kpi .val{ font-size:18px; font-weight:800; margin-top:6px; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .muted{ color: var(--muted); }
+
+    .progress{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding:12px;
+      background: rgba(0,0,0,.12);
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      margin-top:10px;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--good), var(--warn), var(--bad));
+      transition: width .25s ease;
+    }
+
+    .list{
+      margin-top:12px;
+      border-top:1px solid rgba(255,255,255,.06);
+      padding-top:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius: 14px;
+      background: rgba(0,0,0,.12);
+    }
+    .item .left{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width:0;
+    }
+    .badge{
+      width:34px; height:34px;
+      border-radius: 12px;
+      display:grid;
+      place-items:center;
+      background: rgba(106,169,255,.15);
+      border: 1px solid rgba(106,169,255,.25);
+      flex:0 0 auto;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .title .t{
+      font-weight:700;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 260px;
+    }
+    .title .s{
+      font-size:12px;
+      color: var(--muted);
+      margin-top:2px;
+    }
+    .amt{
+      font-weight:900;
+      font-size:14px;
+      flex:0 0 auto;
+    }
+
+    /* Modal */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modal{
+      width:min(520px, 100%);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)),
+                  #0e1624;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .modal h3{
+      margin:0 0 10px 0;
+      font-size:16px;
+    }
+    .form{
+      display:grid;
+      gap:10px;
+    }
+    .field label{
+      display:block;
+      font-size:12px;
+      color: var(--muted);
+      margin-bottom:6px;
+    }
+    .field input, .field select{
+      width:100%;
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      outline:none;
+    }
+    .quickcats{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+    .chip{
+      cursor:pointer;
+      user-select:none;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
+      color: var(--text);
+    }
+    .chip:hover{
+      border-color: rgba(106,169,255,.35);
+      background: rgba(106,169,255,.10);
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+    }
+    .btn{
+      flex:1;
+      border:none;
+      cursor:pointer;
+      padding:12px 12px;
+      border-radius: 14px;
+      font-weight:800;
+      font-size:13px;
+      transition: transform .08s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(43,213,118,.9), rgba(43,213,118,.55));
+      color:#04111f;
+      box-shadow: 0 12px 25px rgba(43,213,118,.18);
+    }
+
+    .rightTop{
+      display:grid;
+      gap:12px;
+    }
+    .note{
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      margin:0;
+    }
+    .mini{
+      display:grid;
+      gap:10px;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    @media (max-width: 920px){
+      .mini{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <!-- LEFT: Quick Add + KPIs -->
+    <section class="card">
+      <div class="h">
+        <h2>Quick Add Expense</h2>
+        <span class="pill" id="todayPill">Сегодня: —</span>
+      </div>
+
+      <button class="bigbtn" id="openModalBtn">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Добавить расход
+      </button>
+
+      <div class="grid">
+        <div class="kpi">
+          <div class="label">Расходы за сегодня</div>
+          <div class="val" id="kpiToday">€0.00</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Расходы за месяц</div>
+          <div class="val" id="kpiMonth">€0.00</div>
+        </div>
+      </div>
+
+      <div class="progress">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div style="font-weight:800;">Лимит месяца</div>
+            <div class="muted" id="limitText">Лимит: €1200 • Осталось: €1200</div>
+          </div>
+          <div class="pill" id="limitPct">0%</div>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+
+      <div class="list" id="recentList">
+        <!-- items injected -->
+      </div>
+    </section>
+
+    <!-- RIGHT: Explain / extra -->
+    <section class="card">
+      <div class="h">
+        <h2>Как это работает</h2>
+        <span class="pill">Локально в браузере</span>
+      </div>
+
+      <p class="note">
+        Этот виджет хранит операции в <b>localStorage</b> (без сервера), пересчитывает KPI и лимит.
+        В Notion обычно такой HTML встраивают через сторонний хостинг/виджет-сервис, но логика та же.
+      </p>
+
+      <div class="rightTop">
+        <div class="mini">
+          <div class="kpi">
+            <div class="label">Категория №1</div>
+            <div class="val" id="topCat">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Средний расход/день</div>
+            <div class="val" id="avgPerDay">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Прогноз до конца месяца</div>
+            <div class="val" id="forecast">—</div>
+          </div>
+        </div>
+
+        <div class="progress">
+          <div style="font-weight:800;">Быстрые действия</div>
+          <div class="muted" style="margin-top:6px;">Кнопки ниже — пример “тыкалок” для управления системой.</div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="btn secondary" id="seedBtn">Заполнить тестовыми</button>
+            <button class="btn secondary" id="clearBtn">Сбросить данные</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <div class="h">
+        <h3 id="mTitle">Добавить расход</h3>
+        <span class="pill" id="nowTime">—</span>
+      </div>
+
+      <div class="form">
+        <div class="field">
+          <label>Сумма (€)</label>
+          <input id="amount" type="number" inputmode="decimal" placeholder="Напр. 12.50" min="0" step="0.01" />
+        </div>
+
+        <div class="field">
+          <label>Категория</label>
+          <select id="category">
+            <option value="Еда">🍔 Еда</option>
+            <option value="Транспорт">🚗 Транспорт</option>
+            <option value="Подписки">💳 Подписки</option>
+            <option value="Покупки">🛍 Покупки</option>
+            <option value="Дом">🏠 Дом</option>
+            <option value="Здоровье">💊 Здоровье</option>
+            <option value="Другое">✨ Другое</option>
+          </select>
+
+          <div class="quickcats">
+            <div class="chip" data-cat="Еда">🍔 Еда</div>
+            <div class="chip" data-cat="Транспорт">🚗 Транспорт</div>
+            <div class="chip" data-cat="Подписки">💳 Подписки</div>
+            <div class="chip" data-cat="Покупки">🛍 Покупки</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Комментарий (опционально)</label>
+          <input id="note" type="text" placeholder="Напр. кофе + круассан" />
+        </div>
+
+        <div class="actions">
+          <button class="btn secondary" id="cancelBtn">Отмена</button>
+          <button class="btn primary" id="saveBtn">Сохранить</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ====== Config ======
+    const STORAGE_KEY = "finance_widget_transactions_v1";
+    const MONTH_LIMIT = 1200; // можно сделать полем настроек
+
+    // ====== Helpers ======
+    const eur = (n) => "€" + (Number(n || 0).toFixed(2));
+    const pad = (n) => String(n).padStart(2, "0");
+
+    function nowISO() {
+      const d = new Date();
+      return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+
+    function monthKey(d=new Date()){
+      return d.getFullYear() + "-" + pad(d.getMonth()+1);
+    }
+
+    function dayKey(d=new Date()){
+      return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+    }
+
+    function endOfMonth(d=new Date()){
+      return new Date(d.getFullYear(), d.getMonth()+1, 0);
+    }
+
+    function daysInMonth(d=new Date()){
+      return endOfMonth(d).getDate();
+    }
+
+    function loadTx(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        return [];
+      }
+    }
+
+    function saveTx(list){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    // ====== State ======
+    let tx = loadTx(); // {id, ts, amount, category, note}
+
+    // ====== UI refs ======
+    const openModalBtn = document.getElementById("openModalBtn");
+    const overlay = document.getElementById("overlay");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const saveBtn = document.getElementById("saveBtn");
+
+    const amountEl = document.getElementById("amount");
+    const categoryEl = document.getElementById("category");
+    const noteEl = document.getElementById("note");
+
+    const kpiToday = document.getElementById("kpiToday");
+    const kpiMonth = document.getElementById("kpiMonth");
+    const todayPill = document.getElementById("todayPill");
+
+    const limitText = document.getElementById("limitText");
+    const limitPct = document.getElementById("limitPct");
+    const barFill = document.getElementById("barFill");
+
+    const recentList = document.getElementById("recentList");
+    const nowTime = document.getElementById("nowTime");
+
+    const topCat = document.getElementById("topCat");
+    const avgPerDay = document.getElementById("avgPerDay");
+    const forecast = document.getElementById("forecast");
+
+    const seedBtn = document.getElementById("seedBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    // ====== Modal ======
+    function openModal(){
+      overlay.style.display = "flex";
+      nowTime.textContent = new Date().toLocaleString("ru-RU", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+      amountEl.value = "";
+      noteEl.value = "";
+      amountEl.focus();
+    }
+
+    function closeModal(){
+      overlay.style.display = "none";
+    }
+
+    openModalBtn.addEventListener("click", openModal);
+    cancelBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+      if(e.target === overlay) closeModal();
+    });
+
+    // Quick category chips
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        categoryEl.value = chip.dataset.cat;
+      });
+    });
+
+    // Save
+    saveBtn.addEventListener("click", () => {
+      const amt = Number(amountEl.value);
+      if(!amt || amt <= 0){
+        alert("Введите сумму больше 0");
+        amountEl.focus();
+        return;
+      }
+
+      const item = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2),
+        ts: new Date().toISOString(),
+        amount: amt,
+        category: categoryEl.value,
+        note: noteEl.value.trim()
+      };
+
+      tx.unshift(item);
+      saveTx(tx);
+      closeModal();
+      render();
+    });
+
+    // Seed / Clear
+    seedBtn.addEventListener("click", () => {
+      const base = new Date();
+      const samples = [
+        { amount: 6.4, category:"Еда", note:"кофе" },
+        { amount: 18.2, category:"Еда", note:"обед" },
+        { amount: 12.0, category:"Транспорт", note:"такси" },
+        { amount: 9.99, category:"Подписки", note:"music" },
+        { amount: 42.5, category:"Покупки", note:"мелочи" }
+      ].map((s, i) => ({
+        id: String(Date.now()+i),
+        ts: new Date(base.getTime() - i*86400000/2).toISOString(),
+        ...s
+      }));
+
+      tx = [...samples, ...tx];
+      saveTx(tx);
+      render();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if(confirm("Сбросить все данные виджета?")){
+        tx = [];
+        saveTx(tx);
+        render();
+      }
+    });
+
+    // ====== Calculations ======
+    function sumForDay(list, dk){
+      return list
+        .filter(x => dayKey(new Date(x.ts)) === dk)
+        .reduce((a, x) => a + Number(x.amount), 0);
+    }
+
+    function sumForMonth(list, mk){
+      return list
+        .filter(x => monthKey(new Date(x.ts)) === mk)
+        .reduce((a, x) => a + Number(x.amount), 0);
+    }
+
+    function topCategoryForMonth(list, mk){
+      const map = new Map();
+      list.filter(x => monthKey(new Date(x.ts)) === mk).forEach(x => {
+        map.set(x.category, (map.get(x.category) || 0) + Number(x.amount));
+      });
+      let best = null;
+      for(const [k,v] of map.entries()){
+        if(!best || v > best.v) best = {k, v};
+      }
+      return best;
+    }
+
+    function calcAvgPerDayThisMonth(list){
+      const mk = monthKey();
+      const inMonth = list.filter(x => monthKey(new Date(x.ts)) === mk);
+      if(inMonth.length === 0) return 0;
+
+      // average per ACTIVE day (дни, когда были траты)
+      const daySums = new Map();
+      inMonth.forEach(x => {
+        const dk = dayKey(new Date(x.ts));
+        daySums.set(dk, (daySums.get(dk) || 0) + Number(x.amount));
+      });
+
+      const total = Array.from(daySums.values()).reduce((a,b)=>a+b,0);
+      return total / daySums.size;
+    }
+
+    function forecastEOM(list){
+      const mk = monthKey();
+      const monthTotal = sumForMonth(list, mk);
+      const avg = calcAvgPerDayThisMonth(list);
+      const d = new Date();
+      const remainingDays = daysInMonth(d) - d.getDate();
+      return monthTotal + avg * remainingDays;
+    }
+
+    // ====== Render ======
+    function render(){
+      const dk = dayKey();
+      const mk = monthKey();
+
+      const todaySum = sumForDay(tx, dk);
+      const monthSum = sumForMonth(tx, mk);
+
+      kpiToday.textContent = eur(todaySum);
+      kpiMonth.textContent = eur(monthSum);
+      todayPill.textContent = "Сегодня: " + new Date().toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit" });
+
+      const pct = Math.min(100, Math.round((monthSum / MONTH_LIMIT) * 100));
+      const left = Math.max(0, MONTH_LIMIT - monthSum);
+
+      limitText.textContent = `Лимит: ${eur(MONTH_LIMIT)} • Осталось: ${eur(left)}`;
+      limitPct.textContent = pct + "%";
+      barFill.style.width = pct + "%";
+
+      // recent list
+      recentList.innerHTML = "";
+      const recent = tx.slice(0, 6);
+      if(recent.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "muted";
+        empty.style.padding = "10px 2px 2px 2px";
+        empty.textContent = "Пока нет операций. Нажми «Добавить расход».";
+        recentList.appendChild(empty);
+      }else{
+        recent.forEach(x => {
+          const d = new Date(x.ts);
+          const time = d.toLocaleString("ru-RU", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+          const el = document.createElement("div");
+          el.className = "item";
+          el.innerHTML = `
+            <div class="left">
+              <div class="badge">💠</div>
+              <div class="title">
+                <div class="t">${escapeHtml(x.category)}${x.note ? " — " + escapeHtml(x.note) : ""}</div>
+                <div class="s">${time}</div>
+              </div>
+            </div>
+            <div class="amt">-${eur(x.amount)}</div>
+          `;
+          recentList.appendChild(el);
+        });
+      }
+
+      // right-side insights
+      const top = topCategoryForMonth(tx, mk);
+      topCat.textContent = top ? `${top.k} (${eur(top.v)})` : "—";
+
+      const avg = calcAvgPerDayThisMonth(tx);
+      avgPerDay.textContent = avg ? eur(avg) : "—";
+
+      const f = forecastEOM(tx);
+      forecast.textContent = tx.length ? eur(f) : "—";
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    render();
+  </script>
+</body>
+</html>
